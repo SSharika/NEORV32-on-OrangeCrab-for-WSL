@@ -69,7 +69,7 @@ begin
   );
 
   -- GPIO output --
-  pop <= '1';
+  pop <= std_logic_vector(to_unsigned(1, pop'length));
   rgb_led0_g <= not con_gpio_o(0);
   rgb_led0_g <= '1';
   rgb_led0_b <= '1';

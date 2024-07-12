@@ -31,6 +31,7 @@ end entity;
 architecture neorv32_test_setup_bootloader_rtl of neorv32_test_setup_bootloader is
 
   signal con_gpio_o : std_ulogic_vector(63 downto 0);
+  signal pop : std_ulogic_vector(2 downto 0);
 
 begin
 
@@ -68,10 +69,11 @@ begin
   );
 
   -- GPIO output --
+  pop <= '1';
   rgb_led0_g <= not con_gpio_o(0);
   rgb_led0_g <= '1';
   rgb_led0_b <= '1';
-  gpio_0 <= '1';
+  gpio_0 <= pop(0);;
 
 
 end architecture;

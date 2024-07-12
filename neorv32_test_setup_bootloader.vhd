@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 -- UART Sender Example Entity
 entity uart_sender_example is
@@ -12,22 +13,25 @@ end entity uart_sender_example;
 
 architecture rtl of uart_sender_example is
     signal tx_data : std_logic_vector(7 downto 0) := "01000001"; -- 'A' in ASCII
+    signal tx_counter : integer := 0; -- Counter to manage transmission timing
 begin
     process (clk, rst)
     begin
         if rst = '1' then
             uart0_txd_o <= '0'; -- Initialize to idle state
+            tx_counter <= 0;
         elsif rising_edge(clk) then
-            uart0_txd_o <= tx_data(0); -- Send the least significant bit of 'A'
+            if tx_counter < 8 then
+                uart0_txd_o <= tx_data(tx_counter); -- Send the bit of 'A'
+                tx_counter <= tx_counter + 1;
+            else
+                tx_counter <= 0; -- Reset counter after sending all bits
+            end if;
         end if;
     end process;
 end architecture rtl;
 
--- Main Design Entity
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
+-- NEORV32 Test Setup Bootloader Entity
 library neorv32;
 use neorv32.neorv32_package.all;
 
@@ -38,10 +42,10 @@ entity neorv32_test_setup_bootloader is
     MEM_INT_DMEM_SIZE : natural := 8*1024     -- size of processor-internal data memory in bytes
   );
   port (
-    clk48       : in  std_ulogic; -- global clock, rising edge
-    usr_btn     : in  std_ulogic; -- global reset, low-active, async
-    gpio_0      : out std_ulogic; -- UART0 send data
-    gpio_1      : in  std_ulogic; -- UART0 receive data
+    clk48       : in  std_logic; -- global clock, rising edge
+    usr_btn     : in  std_logic; -- global reset, low-active, async
+    gpio_0      : out std_logic; -- UART0 send data
+    gpio_1      : in  std_logic; -- UART0 receive data
     rgb_led0_r  : out std_logic; -- red channel
     rgb_led0_g  : out std_logic; -- green channel
     rgb_led0_b  : out std_logic  -- blue channel
@@ -50,19 +54,17 @@ end entity neorv32_test_setup_bootloader;
 
 architecture neorv32_test_setup_bootloader_rtl of neorv32_test_setup_bootloader is
 
-  signal con_gpio_o : std_ulogic_vector(63 downto 0);
+  signal con_gpio_o : std_logic_vector(63 downto 0);
 
   -- Instantiate UART sender
-  uart_sender_inst: uart_sender_example
+  uart_sender_inst: entity work.uart_sender_example
     port map (
       clk        => clk48,
       rst        => usr_btn,
       uart0_txd_o => gpio_0 -- Send data through UART TX line
     );
 
-begin
-
-  -- Instantiate the NEORV32 core
+  -- Instantiate NEORV32 core
   neorv32_top_inst: neorv32_top
     generic map (
       CLOCK_FREQUENCY              => CLOCK_FREQUENCY,   -- clock frequency of clk48 in Hz
@@ -86,9 +88,9 @@ begin
       uart0_rxd_i => gpio_1       -- UART0 receive data
     );
 
-  -- GPIO output --
-  rgb_led0_b <= not con_gpio_o(0);
-  rgb_led0_r <= '1';
+  -- GPIO output
+  rgb_led0_r <= not con_gpio_o(0);
   rgb_led0_g <= '1';
+  rgb_led0_b <= '1';
 
 end architecture neorv32_test_setup_bootloader_rtl;

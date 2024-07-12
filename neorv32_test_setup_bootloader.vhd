@@ -80,14 +80,14 @@ entity neorv32_test_setup_bootloader is
 end entity neorv32_test_setup_bootloader;
 
 architecture neorv32_test_setup_bootloader_rtl of neorv32_test_setup_bootloader is
-  signal con_gpio_o : std_logic_vector(63 downto 0);
+  signal con_gpio_o : std_ulogic_vector(63 downto 0);
 
   -- Instantiate UART sender
   uart_sender_inst: entity work.uart_sender_example
     port map (
       clk        => clk48,
       rst        => usr_btn,
-      uart0_txd_o => gpio_0 -- Send data through UART TX line
+      uart0_txd_o => gpio_0
     );
 
   -- Instantiate UART receiver
@@ -100,14 +100,6 @@ architecture neorv32_test_setup_bootloader_rtl of neorv32_test_setup_bootloader 
       led          => rgb_led0_g -- Display the received bit on an LED (for demonstration)
     );
 
-  -- Instantiate NEORV32 core
-  neorv32_top_inst: neorv32_top
-    generic map (
-      -- ... (existing generics)
-    )
-    port map (
-      -- ... (existing ports)
-      uart0_txd_o => gpio_0,      -- UART0 send data
-      uart0_rxd_i => gpio_1       -- UART0 receive data
-    );
+  -- ... (Other existing architecture code)
 
+end architecture neorv32_test_setup_bootloader_rtl;

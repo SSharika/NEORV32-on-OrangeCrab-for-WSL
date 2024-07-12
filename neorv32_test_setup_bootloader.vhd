@@ -69,7 +69,7 @@ begin
   );
 
   -- GPIO output --
-  pop <= "001";
+ 
   rgb_led0_r <= not con_gpio_o(0);
   rgb_led0_g <= '1';
   rgb_led0_b <= '1';
